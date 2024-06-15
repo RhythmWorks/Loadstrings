@@ -163,6 +163,8 @@ local function Nametags()
 end
 
 local function Aimbot()
+	local StarterGui = game:GetService("StarterGui")
+
 	local aimbotEnabled = false
 	local mouse = game.Players.LocalPlayer:GetMouse()
 
@@ -209,6 +211,12 @@ local function Aimbot()
 	local function onKeyPress(input, GPE)
 		if input.KeyCode == Enum.KeyCode.E and not GPE then
 			aimbotEnabled = not aimbotEnabled
+
+			StarterGui:SetCore("SendNotification", {
+				Title = "Aimbot Toggled", 
+				Text = "Now " .. aimbotEnabled and "Enabled" or "Disabled", 
+				Duration = 3
+			})
 		end
 	end
 
