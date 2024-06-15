@@ -214,7 +214,7 @@ local function Aimbot()
 
 			StarterGui:SetCore("SendNotification", {
 				Title = "Aimbot Toggled", 
-				Text = "Now " .. aimbotEnabled and "Enabled" or "Disabled", 
+				Text = "Now " .. aimbotEnabled and "Enabled" or "Disabled",
 				Duration = 3
 			})
 		end
