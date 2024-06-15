@@ -165,9 +165,9 @@ local function Aimbot()
 		local character = localPlayer.Character
 		if not character or not character:FindFirstChild("HumanoidRootPart") then return nil end
 	
-		local mouseRay = camera:ScreenPointToRay(mouse.X, mouse.Y)
-		local ray = Ray.new(mouseRay.Origin, mouseRay.Direction * getgenv().__0RXPT.AimbotRange)
-		local target
+		local closestCharacter = nil
+		local mousePosition = Vector2.new(mouse.X, mouse.Y)
+		local closestDistance = validFOVRadiuses[getgenv().__0RXPT.FOVRadius]
 	
 		local function isPlayerPart(part)
 			local localPlayer = game.Players.LocalPlayer
@@ -175,6 +175,7 @@ local function Aimbot()
 			
 			if player and player ~= localPlayer then
 				local allSameTeam = true
+
 				for _, otherPlayer in ipairs(game.Players:GetPlayers()) do
 					if otherPlayer ~= localPlayer and otherPlayer.Team ~= player.Team then
 						allSameTeam = false
@@ -185,23 +186,31 @@ local function Aimbot()
 				if not allSameTeam then
 					return player.Team ~= localPlayer.Team
 				else
-					return true -- All players are on the same team (free-for-all)
+					return true
 				end
 			end
 			
 			return false
 		end
 	
-		local ignoreList = {localPlayer.Character}
-	
-		target = workspace:FindPartOnRayWithIgnoreList(ray, ignoreList, true)
-	
-		while target and not isPlayerPart(target) do
-			table.insert(ignoreList, target)
-			target = workspace:FindPartOnRayWithIgnoreList(ray, ignoreList, true)
+		for _, player in ipairs(game.Players:GetPlayers()) do
+			if player ~= localPlayer and player.Character then
+				local aimPart = math.random() < 0.5 and player.Character:FindFirstChild("Head") or player.Character:FindFirstChild("HumanoidRootPart")
+				if aimPart and isPlayerPart(aimPart) then
+					local aimPartPos, isOnScreen = camera:WorldToViewportPoint(aimPart.Position)
+					if isOnScreen then
+						local aimPartScreenPos = Vector2.new(aimPartPos.X, aimPartPos.Y)
+						local distance = (mousePosition - aimPartScreenPos).Magnitude
+						if distance < closestDistance then
+							closestDistance = distance
+							closestCharacter = player.Character
+						end
+					end
+				end
+			end
 		end
 	
-		return target and target.Parent
+		return closestCharacter
 	end
 
 	local function aimAt(target)
@@ -238,7 +247,7 @@ local function Aimbot()
 		if GPE then
 			return
 		end
-		
+
 		local validInputs = {
 			E = function()
 				aimbotEnabled = not aimbotEnabled
