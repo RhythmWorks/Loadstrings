@@ -354,6 +354,14 @@ local function initialize()
 end
 
 local function start()
+	local StarterGui = game:GetService("StarterGui")
+
+	StarterGui:SetCore("SendNotification", {
+		Title = "0rxpt's Script", 
+		Text = "Da Hood script loaded. Have fun!", 
+		Duration = 10
+	})
+
 	InfJump()
 	Chatted()
 	ESP()
