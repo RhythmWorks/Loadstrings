@@ -148,6 +148,12 @@ local function Aimbot()
 	fovcircle.Transparency = 1
 	fovcircle.Position = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
 
+	local updatePosConnection = game:GetService("RunService").RenderStepped:Connect(function()
+		fovcircle.Position = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
+	end)
+
+	table.insert(getgenv().__0RXPT.Connections, updatePosConnection)
+
 	getgenv().__0RXPT.Drawing = fovcircle
 
 	local function updateColor()
