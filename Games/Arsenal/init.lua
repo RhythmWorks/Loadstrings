@@ -109,7 +109,7 @@ local function Nametags()
 		username.Name = "Username"
 		username.FontFace = Font.new("rbxasset://fonts/families/FredokaOne.json")
 		username.Text = if player.DisplayName == player.Name then player.Name else `{player.DisplayName} (@{player.Name})`
-		username.TextColor3 = player.TeamColor.Color or Color3.fromRGB(0, 0, 255)
+		username.TextColor3 = player.TeamColor.Color or Color3.new(1, 1, 1)
 		username.TextScaled = true
 		username.TextSize = 14
 		username.TextWrapped = true
@@ -167,54 +167,105 @@ local function Aimbot()
 
 	local aimbotEnabled = false
 	local mouse = game.Players.LocalPlayer:GetMouse()
+	local camera = workspace.CurrentCamera
+
+	local fovRadius = 100
+
+	local fovcircle = Drawing.new("Circle")
+	fovcircle.Visible = true
+	fovcircle.Radius = fovRadius
+	fovcircle.Color = getgenv().__0RXPT.TargetTeamColor
+	fovcircle.Thickness = 1
+	fovcircle.Filled = false
+	fovcircle.Transparency = 1
+	fovcircle.Position = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
+
+	getgenv().__0RXPT.Drawing = fovcircle
+
+	local function updateColor()
+		fovcircle.Color = getgenv().__0RXPT.TargetTeamColor
+	end
 
 	local function getPlayerFromMouse()
 		local localPlayer = game.Players.LocalPlayer
 		local character = localPlayer.Character
 		if not character or not character:FindFirstChild("HumanoidRootPart") then return nil end
-
-		local camera = workspace.CurrentCamera
+	
 		local mouseRay = camera:ScreenPointToRay(mouse.X, mouse.Y)
 		local ray = Ray.new(mouseRay.Origin, mouseRay.Direction * getgenv().__0RXPT.AimbotRange)
-		local target, position
-
+		local target
+	
 		local function isPlayerPart(part)
+			local localPlayer = game.Players.LocalPlayer
 			local player = game.Players:GetPlayerFromCharacter(part.Parent)
-			return player and player ~= localPlayer and player.Team ~= localPlayer.Team
+			
+			if player and player ~= localPlayer then
+				local allSameTeam = true
+				for _, otherPlayer in ipairs(game.Players:GetPlayers()) do
+					if otherPlayer ~= localPlayer and otherPlayer.Team ~= player.Team then
+						allSameTeam = false
+						break
+					end
+				end
+				
+				if not allSameTeam then
+					return player.Team ~= localPlayer.Team
+				else
+					return true -- All players are on the same team (free-for-all)
+				end
+			end
+			
+			return false
 		end
-
+	
 		local ignoreList = {localPlayer.Character}
-
-		target, position = workspace:FindPartOnRayWithIgnoreList(ray, ignoreList, true)
-
+	
+		target = workspace:FindPartOnRayWithIgnoreList(ray, ignoreList, true)
+	
 		while target and not isPlayerPart(target) do
 			table.insert(ignoreList, target)
-			target, position = workspace:FindPartOnRayWithIgnoreList(ray, ignoreList, true)
+			target = workspace:FindPartOnRayWithIgnoreList(ray, ignoreList, true)
 		end
-
+	
 		return target and target.Parent
 	end
 
 	local function aimAt(target)
-		local camera = workspace.CurrentCamera
 		local character = target
+	
+		if character then
+			local aimPart = math.random() < 0.5 and character:FindFirstChild("Head") or character:FindFirstChild("HumanoidRootPart")
+			if aimPart then
+				local raycastParams = RaycastParams.new()
+				raycastParams.FilterDescendantsInstances = {game.Players.LocalPlayer.Character, character}
+				raycastParams.IgnoreWater = true
 
-        if character then
-            local aimPart = math.random() < 0.5 and character:FindFirstChild("Head") or character:FindFirstChild("HumanoidRootPart")
-            
-            if aimPart then
-                camera.CFrame = CFrame.new(camera.CFrame.Position, aimPart.Position)
-            end
-        end
+				local raycastResult = workspace:Raycast(camera.CFrame.Position, aimPart.Position - camera.CFrame.Position, raycastParams)
+
+				if not raycastResult or raycastResult.Instance == aimPart then
+					local charPartPos, isOnScreen = camera:WorldToViewportPoint(aimPart.Position)
+
+					if isOnScreen then
+						local mousePosition = Vector2.new(mouse.X, mouse.Y)
+						local targetPosition = Vector2.new(charPartPos.X, charPartPos.Y)
+						local mag = (mousePosition - targetPosition).Magnitude
+
+						if mag < fovRadius then
+							camera.CFrame = CFrame.new(camera.CFrame.Position, aimPart.Position)
+						end
+					end
+				end
+			end
+		end
 	end
 
-	local function onKeyPress(input, GPE)
-		if input.KeyCode == Enum.KeyCode.E and not GPE then
+	local function onKeyPress(input)
+		if input.KeyCode == Enum.KeyCode.E then
 			aimbotEnabled = not aimbotEnabled
 
 			StarterGui:SetCore("SendNotification", {
-				Title = "Aimbot Toggled", 
-				Text = "Now " .. aimbotEnabled and "Enabled" or "Disabled",
+				Title = "Aimbot:",
+            	Text = aimbotEnabled and "Enabled" or "Disabled",
 				Duration = 3
 			})
 		end
@@ -224,8 +275,13 @@ local function Aimbot()
 		if aimbotEnabled then
 			local targetCharacter = getPlayerFromMouse()
 			if targetCharacter then
+				getgenv().__0RXPT.TargetTeamColor = game.Players[targetCharacter.Name].Team.TeamColor.Color or Color3.new(1, 1, 1)
 				aimAt(targetCharacter)
+			else
+				getgenv().__0RXPT.TargetTeamColor = Color3.new(1, 1, 1)
 			end
+
+			updateColor()
 		end
 	end
 	
@@ -238,6 +294,10 @@ end
 
 local function initialize()
 	if getgenv().__0RXPT then
+		if getgenv().__0RXPT.Drawing then
+			getgenv().__0RXPT.Drawing:Destroy()
+		end
+
 		for _, connection in pairs(getgenv().__0RXPT.Connections) do
 			connection:Disconnect()
 		end
@@ -247,6 +307,7 @@ local function initialize()
 		WalkSpeed = game.Players.LocalPlayer.Character:WaitForChild("Humanoid").WalkSpeed,
 		JumpPower = game.Players.LocalPlayer.Character:WaitForChild("Humanoid").JumpPower,
 		AimbotRange = 300,
+		TargetTeamColor = Color3.new(1, 1, 1),
 		
 		Connections = {},
 	}
