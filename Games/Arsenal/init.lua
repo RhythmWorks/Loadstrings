@@ -167,7 +167,7 @@ local function Aimbot()
 	
 		local closestCharacter = nil
 		local mousePosition = Vector2.new(mouse.X, mouse.Y)
-		local closestDistance = validFOVRadiuses[getgenv().__0RXPT.FOVRadius]
+		local closestDistance = math.huge
 	
 		local function isPlayerPart(part)
 			local localPlayer = game.Players.LocalPlayer
@@ -201,7 +201,7 @@ local function Aimbot()
 					if isOnScreen then
 						local aimPartScreenPos = Vector2.new(aimPartPos.X, aimPartPos.Y)
 						local distance = (mousePosition - aimPartScreenPos).Magnitude
-						if distance < closestDistance then
+						if distance < closestDistance and distance < validFOVRadiuses[getgenv().__0RXPT.FOVRadius] then
 							closestDistance = distance
 							closestCharacter = player.Character
 						end
