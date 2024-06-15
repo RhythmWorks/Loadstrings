@@ -234,7 +234,11 @@ local function Aimbot()
 		end
 	end
 
-	local function onKeyPress(input)
+	local function onKeyPress(input, GPE)
+		if GPE then
+			return
+		end
+		
 		local validInputs = {
 			E = function()
 				aimbotEnabled = not aimbotEnabled
