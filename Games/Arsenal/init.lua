@@ -2,46 +2,6 @@ if not game.Players.LocalPlayer.Character then
 	game.Players.LocalPlayer.CharacterAdded:Wait()
 end
 
-local function Chatted()
-	local StarterGui = game:GetService("StarterGui")
-
-	local callbacks = {
-		r = function(args)
-			if not args[2] then
-				return
-			end
-
-			local before = getgenv().__0RXPT.AimbotRange
-
-			getgenv().__0RXPT.AimbotRange = args[2]
-
-			return {
-				Title = "Aimbot Range Updated",
-				Desc = "Before: " .. before .. "\nAfter: " .. args[2]
-			}
-		end,
-	}
-	
-	local connection = game.Players.LocalPlayer.Chatted:Connect(function(message)
-		local args = message:split(" ")
-		local callback = callbacks[args[1]]
-		
-		if not callback then
-			return
-		end
-		
-		local notificationData = callback(args)
-		
-		StarterGui:SetCore("SendNotification", {
-			Title = notificationData.Title, 
-			Text = notificationData.Desc, 
-			Duration = notificationData.Duration or 3
-		})
-	end)
-	
-	table.insert(getgenv().__0RXPT.Connections, connection)
-end
-
 local function ESP()
 	local function create(player)
 		local character = player.Character or player.CharacterAdded:Wait()
@@ -169,11 +129,19 @@ local function Aimbot()
 	local mouse = game.Players.LocalPlayer:GetMouse()
 	local camera = workspace.CurrentCamera
 
-	local fovRadius = 100
+	local validFOVRadiuses = {
+		100,
+		150,
+		200,
+		250,
+		300,
+		350,
+		400,
+	}
 
 	local fovcircle = Drawing.new("Circle")
 	fovcircle.Visible = true
-	fovcircle.Radius = fovRadius
+	fovcircle.Radius = validFOVRadiuses[getgenv().__0RXPT.FOVRadius]
 	fovcircle.Color = getgenv().__0RXPT.TargetTeamColor
 	fovcircle.Thickness = 1
 	fovcircle.Filled = false
@@ -235,6 +203,7 @@ local function Aimbot()
 	
 		if character then
 			local aimPart = math.random() < 0.5 and character:FindFirstChild("Head") or character:FindFirstChild("HumanoidRootPart")
+
 			if aimPart then
 				local raycastParams = RaycastParams.new()
 				raycastParams.FilterDescendantsInstances = {game.Players.LocalPlayer.Character, character}
@@ -242,7 +211,7 @@ local function Aimbot()
 
 				local raycastResult = workspace:Raycast(camera.CFrame.Position, aimPart.Position - camera.CFrame.Position, raycastParams)
 
-				if not raycastResult or raycastResult.Instance == aimPart then
+				if not raycastResult or raycastResult.Instance == aimPart or getgenv().__0RXPT.WallCheck == true then
 					local charPartPos, isOnScreen = camera:WorldToViewportPoint(aimPart.Position)
 
 					if isOnScreen then
@@ -250,7 +219,7 @@ local function Aimbot()
 						local targetPosition = Vector2.new(charPartPos.X, charPartPos.Y)
 						local mag = (mousePosition - targetPosition).Magnitude
 
-						if mag < fovRadius then
+						if mag < validFOVRadiuses[getgenv().__0RXPT.FOVRadius] then
 							camera.CFrame = CFrame.new(camera.CFrame.Position, aimPart.Position)
 						end
 					end
@@ -260,14 +229,42 @@ local function Aimbot()
 	end
 
 	local function onKeyPress(input)
-		if input.KeyCode == Enum.KeyCode.E then
-			aimbotEnabled = not aimbotEnabled
+		local validInputs = {
+			E = function()
+				aimbotEnabled = not aimbotEnabled
 
-			StarterGui:SetCore("SendNotification", {
-				Title = "Aimbot:",
-            	Text = aimbotEnabled and "Enabled" or "Disabled",
-				Duration = 3
-			})
+				StarterGui:SetCore("SendNotification", {
+					Title = "Aimbot:",
+					Text = aimbotEnabled and "Enabled" or "Disabled",
+					Duration = 3
+				})
+			end,
+
+			O = function()
+				getgenv().__0RXPT.WallCheck = not getgenv().__0RXPT.WallCheck
+
+				StarterGui:SetCore("SendNotification", {
+					Title = "Wall Check:",
+					Text = getgenv().__0RXPT.WallCheck and "Enabled" or "Disabled",
+					Duration = 3
+				})
+			end,
+
+			Eight = function()
+				getgenv().__0RXPT.FOVRadius += 1
+
+				if getgenv().__0RXPT.FOVRadius > #validFOVRadiuses then
+					getgenv().__0RXPT.FOVRadius = 1
+				end
+
+				fovcircle.Radius = validFOVRadiuses[getgenv().__0RXPT.FOVRadius]
+			end
+		}
+
+		local inputCallback = validInputs[input.KeyCode.Name]
+
+		if inputCallback then
+			inputCallback()
 		end
 	end
 
@@ -308,7 +305,9 @@ local function initialize()
 		JumpPower = game.Players.LocalPlayer.Character:WaitForChild("Humanoid").JumpPower,
 		AimbotRange = 300,
 		TargetTeamColor = Color3.new(1, 1, 1),
-		
+		WallCheck = false,
+		FOVRadius = 1,
+
 		Connections = {},
 	}
 end
@@ -322,7 +321,6 @@ local function start()
 		Duration = 10
 	})
 
-	Chatted()
 	--ESP()
 	Nametags()
 	Aimbot()
