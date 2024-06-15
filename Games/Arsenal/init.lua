@@ -130,6 +130,10 @@ local function Nametags()
 			if player.Character then
 				task.spawn(create, player)
 			end
+
+			player:GetPropertyChangedSignal("Team"):Connect(function()
+				create(player)
+			end)
 			
 			local connection = player.CharacterAdded:Connect(function()
 				create(player)
@@ -143,6 +147,10 @@ local function Nametags()
 		if player.Character then
 			task.spawn(create, player)
 		end
+
+		player:GetPropertyChangedSignal("Team"):Connect(function()
+			create(player)
+		end)
 		
 		local connection2 = player.CharacterAdded:Connect(function()
 			create(player)
