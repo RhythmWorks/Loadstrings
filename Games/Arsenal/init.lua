@@ -3,47 +3,65 @@ if not game.Players.LocalPlayer.Character then
 end
 
 local function ESP()
-	local function create(player)
-		local character = player.Character or player.CharacterAdded:Wait()
+	local camera = workspace.CurrentCamera
+	local boxSizeOffset = 3000
 
-		if character:FindFirstChild("__ESP") then
-			character.__ESP:Destroy()
-		end
+	local function boxESP(player)
+		local BoxOutline = Drawing.new("Square")
+		BoxOutline.Visible = false
+		BoxOutline.Color = Color3.new(1, 1, 1)
+		BoxOutline.Thickness = 3
+		BoxOutline.Transparency = 0
+		BoxOutline.Filled = false
 
-		local highlight = Instance.new("Highlight", character)
-		highlight.Name = "__ESP"
-		highlight.OutlineColor = Color3.new(0, 0, 255)
-		highlight.FillTransparency = 1
-		highlight.Enabled = true
-	end
-	
-	for _, player in pairs(game.Players:GetPlayers()) do
-		if player ~= game.Players.LocalPlayer then
-			if player.Character then
-				task.spawn(create, player)
+		table.insert(getgenv().__0RXPT.Drawings, BoxOutline)
+
+		local Box = Drawing.new("Square")
+		Box.Visible = false
+		Box.Thickness = 3
+		Box.Color = Color3.new(1,1,1)
+		Box.Transparency = 0.5
+		Box.Filled = false
+
+		table.insert(getgenv().__0RXPT.Drawings, Box)
+
+		local connection = game:GetService("RunService").RenderStepped:Connect(function()
+			if player.Character and player.Character:FindFirstChild ("Humanoid") and player.Character:FindFirstChild ("HumanoidRootPart") and player ~= game.Players.LocalPlayer and player.Character.Humanoid.Health > 0 then
+				local _, onScreen = camera:worldToViewportPoint(player.Character.HumanoidRootPart.Position)
+				local RootPart = player.Character.HumanoidRootPart
+				local Head = player.Character.Head
+
+				local RootPosition = camera:WorldToViewportPoint(RootPart.Position)
+				local HeadPosition = camera:WorldToViewportPoint(Head.Position + Vector3.new(0, 0.5, 0))
+				local LegPosition = camera:WorldToViewportPoint(RootPart.Position - Vector3.new(0, 3.5, 0))
+				
+				if onScreen then
+					BoxOutline.Size = Vector2.new(boxSizeOffset / RootPosition.Z, HeadPosition.Y - LegPosition.Y)
+					BoxOutline.Position = Vector2.new(RootPosition.X - BoxOutline.Size.X / 2, RootPosition.Y - BoxOutline.Size.Y / 2)
+					BoxOutline.Visible = true
+					Box.Size = Vector2.new(boxSizeOffset / RootPosition.Z, HeadPosition.Y - LegPosition.Y)
+					Box.Position = Vector2.new(RootPosition.X - Box.Size.X / 2, RootPosition.Y - Box.Size.Y / 2)
+					Box.Visible = true
+					Box.Color = player.TeamColor.Color or Color3.new(1, 0, 0)
+					--BoxOutline.Color = player.TeamColor.Color or Color3.new(1, 0, 0)
+				else
+					BoxOutline.Visible = false
+					Box.Visible = false
+				end
+			else
+				BoxOutline.Visible = false
+				Box.Visible = false
 			end
-
-			local connection = player.CharacterAdded:Connect(function()
-				create(player)
-			end)
-
-			table.insert(getgenv().__0RXPT.Connections, connection)
-		end
-	end
-
-	local connection = game.Players.PlayerAdded:Connect(function(player)
-		if player.Character then
-			task.spawn(create, player)
-		end
-
-		local connection2 = player.CharacterAdded:Connect(function()
-			create(player)
 		end)
 
-		table.insert(getgenv().__0RXPT.Connections, connection2)
-	end)
-	
-	table.insert(getgenv().__0RXPT.Connections, connection)
+		table.insert(getgenv().__0RXPT.Connections, connection)
+	end
+
+	for _, player in pairs(game.Players:GetChildren()) do
+		task.defer(boxESP, player)
+	end
+
+	table.insert(getgenv().__0RXPT.Connections, game.Players.PlayerAdded:Connect(boxESP))
 end
 
 local function Nametags()
@@ -88,7 +106,7 @@ local function Nametags()
 	for _, player in pairs(game.Players:GetPlayers()) do
 		if player ~= game.Players.LocalPlayer then
 			if player.Character then
-				task.spawn(create, player)
+				task.defer(create, player)
 			end
 
 			player:GetPropertyChangedSignal("Team"):Connect(function()
@@ -105,7 +123,7 @@ local function Nametags()
 
 	local connection = game.Players.PlayerAdded:Connect(function(player)
 		if player.Character then
-			task.spawn(create, player)
+			task.defer(create, player)
 		end
 
 		player:GetPropertyChangedSignal("Team"):Connect(function()
@@ -153,8 +171,7 @@ local function Aimbot()
 	end)
 
 	table.insert(getgenv().__0RXPT.Connections, updatePosConnection)
-
-	getgenv().__0RXPT.Drawing = fovcircle
+	table.insert(getgenv().__0RXPT.Drawings, fovcircle)
 
 	local function updateColor()
 		fovcircle.Color = getgenv().__0RXPT.TargetTeamColor
@@ -310,8 +327,8 @@ end
 
 local function initialize()
 	if getgenv().__0RXPT then
-		if getgenv().__0RXPT.Drawing then
-			getgenv().__0RXPT.Drawing:Destroy()
+		for _, drawing in pairs(getgenv().__0RXPT.Drawings) do
+			drawing:Remove()
 		end
 
 		for _, connection in pairs(getgenv().__0RXPT.Connections) do
@@ -327,6 +344,7 @@ local function initialize()
 		WallCheck = false,
 		FOVRadius = 1,
 
+		Drawings = {},
 		Connections = {},
 	}
 end
@@ -340,10 +358,12 @@ local function start()
 		Duration = 10
 	})
 
-	--ESP()
+	ESP()
 	Nametags()
 	Aimbot()
 end
 
 initialize()
 start()
+
+print("[[ CXTHub Initialized]]")
