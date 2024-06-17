@@ -1,7 +1,7 @@
 local PlaceIDs = {
     ["286090429"] = "Arsenal",
     ["2788229376"] = "DaHood",
-    ["6808416928"] = "Aimblox",
+    ["6808489605"] = "Aimblox",
 }
 
 local place = PlaceIDs[tostring(game.PlaceId)] or "Universal"
