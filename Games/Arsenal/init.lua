@@ -64,6 +64,45 @@ local function ESP()
 	table.insert(getgenv().__0RXPT.Connections, game.Players.PlayerAdded:Connect(boxESP))
 end
 
+local function Tracers()
+	local camera = workspace.CurrentCamera
+
+	local function lineESP(player)
+		local Tracer = Drawing.new("Line")
+		Tracer.Visible = false
+		Tracer.Color = Color3.new(1, 1, 1)
+		Tracer.Thickness = 1
+		Tracer.Transparency = 1
+
+		table.insert(getgenv().__0RXPT.Drawings, Tracer)
+
+		local connection = game:GetService("RunService").RenderStepped:Connect(function()
+			if player.Character and player.Character:FindFirstChild ("Humanoid") and player.Character:FindFirstChild ("HumanoidRootPart") and player ~= game.Players.LocalPlayer and player.Character.Humanoid.Health > 0 then
+				local Vector, onScreen = camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
+				
+				if onScreen then
+					Tracer.Visible = true
+					Tracer.From = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 1)
+					Tracer.To = Vector2.new(Vector.X, Vector.Y)
+					Tracer.Color = player.TeamColor.Color or Color3.new(1, 1, 1)
+				else
+					Tracer.Visible = false
+				end
+			else
+				Tracer.Visible = false
+			end
+		end)
+
+		table.insert(getgenv().__0RXPT.Connections, connection)
+	end
+
+	for _, player in pairs(game.Players:GetChildren()) do
+		task.defer(lineESP, player)
+	end
+
+	table.insert(getgenv().__0RXPT.Connections, game.Players.PlayerAdded:Connect(lineESP))
+end
+
 local function Nametags()
 	local function create(player)
 		local character = player.Character or player.CharacterAdded:Wait()
@@ -359,6 +398,7 @@ local function start()
 	})
 
 	ESP()
+	Tracers()
 	Nametags()
 	Aimbot()
 end
