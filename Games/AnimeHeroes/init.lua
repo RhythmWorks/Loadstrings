@@ -84,7 +84,7 @@ do
 				})
 			end
 
-			return returend.status
+			return returned.status
 		end
 
 		local success = checkKey()
