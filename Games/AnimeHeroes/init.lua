@@ -88,9 +88,11 @@ do
 			Method = "GET",
 		})
 	
-		local returned = game:GetService("HttpService"):JSONDecode(response.Body)
+		local success, returned = pcall(function()
+			return game:GetService("HttpService"):JSONDecode(response.Body)
+		end)
 
-		if returned.status == false then
+		if success and returned.status == false then
 			destroyCXT()
 
 			Fluent:Notify({
