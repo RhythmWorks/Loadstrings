@@ -109,7 +109,7 @@ do
 	end
 
 	local t1 = task.defer(function()
-		while task.wait(15) do
+		while task.wait(60) do
 			success = checkKey()
 
 			if not success then
