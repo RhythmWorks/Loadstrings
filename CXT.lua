@@ -237,7 +237,7 @@ SaveManager:SetIgnoreIndexes({})
 InterfaceManager:SetFolder("CXTHub")
 
 if isfolder("CXTHub") and isfile("CXTHub/key.txt") then
-    checkKey(null, readfile("CXTHub/key.txt"))
+    checkKey(nil, readfile("CXTHub/key.txt"))
 end
 
 Window:SelectTab(1)
