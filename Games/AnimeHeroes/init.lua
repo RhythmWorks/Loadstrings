@@ -134,6 +134,7 @@ do
 end
 
 local validWorldEnemies = {
+	["Town Island"] = { "Sengoku" },
 	["Clover Village"] = { "Jolius", "Yemi" },
 	["Bizarre City"] = {  },
 	["Dragon City"] = { "Broli", "Goko Rose", "TaoTao", "Zemaso", "Frieza", "Android" },
@@ -894,7 +895,7 @@ end
 do
 	local Dropdown = Tabs.AutoFarm:AddDropdown("AutoFarmWorlds", {
 		Title = "Auto Farm Worlds",
-		Values = { "Clover Village", "Bizarre City", "Dragon City", "Slayer Village", "Marine Island", "Leaf Village" },
+		Values = { "Town Island", "Clover Village", "Bizarre City", "Dragon City", "Slayer Village", "Marine Island", "Leaf Village" },
 		Multi = true,
 		Default = {},
 	})
@@ -970,7 +971,7 @@ end
 do
 	local Dropdown = Tabs.AutoGamemodes:AddDropdown("Gamemodes", {
 		Title = "Gamemodes",
-		Values = { "Summer Defense", "Clover Invasion", "Bizarre Defense", "Dragon Tournament", "Ghost Train", "Treasure Hunt", "Ninja Tournament" },
+		Values = { "Invasion Ship", "Summer Defense", "Clover Invasion", "Bizarre Defense", "Dragon Tournament", "Ghost Train", "Treasure Hunt", "Ninja Tournament" },
 		Multi = false,
 	})
 
@@ -1007,7 +1008,7 @@ end
 do
 	local Dropdown = Tabs.Teleports:AddDropdown("WorldTeleports", {
 		Title = "World Teleports",
-		Values = { "Clover Village", "Bizarre City", "Dragon City", "Slayer Village", "Marine Island", "Leaf Village" },
+		Values = { "Town Island", "Clover Village", "Bizarre City", "Dragon City", "Slayer Village", "Marine Island", "Leaf Village" },
 		Multi = false,
 	})
 
