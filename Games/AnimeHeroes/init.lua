@@ -335,6 +335,12 @@ do
 			end
 
 			local item = nextItem.item
+
+			if not item:IsDescendantOf(workspace.Server.ItemSpawn) then
+				table.remove(items, 1)
+				continue
+			end
+
 			local worldSpawned = nextItem.world
 
 			local oldPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
@@ -437,7 +443,7 @@ do
 					break
 				end
 				
-				 fireproximityprompt(item.Prompt, 1000000)
+				fireproximityprompt(item.Prompt, 1000000)
 				task.wait()
 			end
 		end
