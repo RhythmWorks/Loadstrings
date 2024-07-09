@@ -223,27 +223,13 @@ local function Aimbot()
 	
 		local closestCharacter = nil
 		local mousePosition = Vector2.new(mouse.X, mouse.Y)
-		local closestDistance = math.huge
+		local closestDistance = 500
 	
 		local function isPlayerPart(part)
-			local localPlayer = game:GetService("Players").LocalPlayer
 			local player = game:GetService("Players"):GetPlayerFromCharacter(part.Parent)
 			
 			if player and player ~= localPlayer then
-				local allSameTeam = true
-
-				for _, otherPlayer in ipairs(game:GetService("Players"):GetPlayers()) do
-					if otherPlayer ~= localPlayer and otherPlayer.Team ~= player.Team then
-						allSameTeam = false
-						break
-					end
-				end
-				
-				if not allSameTeam then
-					return player.Team ~= localPlayer.Team
-				else
-					return true
-				end
+				return not player.Character.HumanoidRootPart:FindFirstChild("TeammateLabel")
 			end
 			
 			return false
@@ -347,10 +333,10 @@ local function Aimbot()
 		if aimbotEnabled then
 			local targetCharacter = getPlayerFromMouse()
 			if targetCharacter then
-				getgenv().__0RXPT.TargetTeamColor = game:GetService("Players")[targetCharacter.Name].Team.TeamColor.Color or Color3.new(1, 1, 1)
+				--getgenv().__0RXPT.TargetTeamColor = game:GetService("Players")[targetCharacter.Name].Team.TeamColor.Color or Color3.new(1, 1, 1)
 				aimAt(targetCharacter)
 			else
-				getgenv().__0RXPT.TargetTeamColor = Color3.new(1, 1, 1)
+				--getgenv().__0RXPT.TargetTeamColor = Color3.new(1, 1, 1)
 			end
 
 			updateColor()

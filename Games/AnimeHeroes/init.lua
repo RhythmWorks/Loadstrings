@@ -24,6 +24,7 @@ local CXT = {
 	AutoAura = false,
 	AutoBuyFruit = false,
 	AutoEquipBest = false,
+	AutoCollectItems = false,
 
 	FastEgg = false,
 
@@ -318,103 +319,135 @@ do
 end
 
 -- Handle AutoCollectItems
--- do
--- 	local items = {}
+do
+	local items = {}
 
--- 	local t1 = task.defer(function()
--- 		while task.wait() do
--- 			local nextItem = items[1]
+	local t1 = task.defer(function()
+		while task.wait() do
+			if not getgenv().CXT.AutoCollectItems then
+				continue
+			end
 
--- 			if not nextItem then
--- 				continue
--- 			end
+			local nextItem = items[1]
 
--- 			local item = nextItem.item
--- 			local worldSpawned = nextItem.world
+			if not nextItem then
+				continue
+			end
 
--- 			local oldPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
--- 			local currentWorld = workspace.Client.Maps:GetChildren()[1].Name
+			local item = nextItem.item
+			local worldSpawned = nextItem.world
 
--- 			print(item, worldSpawned, currentWorld)
+			local oldPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
+			local currentWorld = workspace.Client.Maps:GetChildren()[1].Name
 
--- 			if currentWorld == "Leaf Village" and worldSpawned == currentWorld then
--- 				game:GetService("ReplicatedStorage"):WaitForChild("Bridge"):FireServer("Teleport", "Teleport", "Marine Island")
--- 			else
--- 				game:GetService("ReplicatedStorage"):WaitForChild("Bridge"):FireServer("Teleport", "Teleport", "Leaf Village")
--- 			end
+			if currentWorld == "Leaf Village" and worldSpawned == currentWorld then
+				game:GetService("ReplicatedStorage"):WaitForChild("Bridge"):FireServer("Teleport", "Teleport", "Marine Island")
+			else
+				game:GetService("ReplicatedStorage"):WaitForChild("Bridge"):FireServer("Teleport", "Teleport", "Leaf Village")
+			end
 
--- 			task.wait(0.1)
--- 			currentWorld = workspace.Client.Maps:GetChildren()[1].Name
+			task.wait(0.1)
+			currentWorld = workspace.Client.Maps:GetChildren()[1].Name
 
--- 			if currentWorld ~= worldSpawned then
--- 				game:GetService("ReplicatedStorage"):WaitForChild("Bridge"):FireServer("Teleport", "Teleport", worldSpawned)
--- 			end
+			if currentWorld ~= worldSpawned then
+				game:GetService("ReplicatedStorage"):WaitForChild("Bridge"):FireServer("Teleport", "Teleport", worldSpawned)
+			end
 
--- 			task.wait(0.35)
--- 			game.Players.LocalPlayer.Character:MoveTo(item.Position)
+			task.wait(0.35)
+			game.Players.LocalPlayer.Character:MoveTo(item.Position)
 
--- 			local tries = 0
+			local tries = 0
 
--- 			while item:IsDescendantOf(workspace.Server.ItemSpawn) do
--- 				tries += 1
+			while item:IsDescendantOf(workspace.Server.ItemSpawn) do
+				tries += 1
 	
--- 				if tries >= 100000 then
--- 					break
--- 				end
+				if tries >= 100000 then
+					break
+				end
 				
--- 				 fireproximityprompt(item.Prompt, 1000000)
--- 				task.wait()
--- 			end
+				 fireproximityprompt(item.Prompt, 1000000)
+				task.wait()
+			end
 
--- 			if workspace.Client.Maps:GetChildren()[1].Name ~= currentWorld then
--- 				game:GetService("ReplicatedStorage"):WaitForChild("Bridge"):FireServer("Teleport", "Teleport", currentWorld)
--- 			end
+			if workspace.Client.Maps:GetChildren()[1].Name ~= currentWorld then
+				game:GetService("ReplicatedStorage"):WaitForChild("Bridge"):FireServer("Teleport", "Teleport", currentWorld)
+			end
 	
--- 			task.wait(0.35)
--- 			game.Players.LocalPlayer.Character:MoveTo(oldPos)
+			task.wait(0.35)
+			game.Players.LocalPlayer.Character:MoveTo(oldPos)
 
--- 			table.remove(items, 1)
--- 		end
--- 	end)
+			table.remove(items, 1)
+		end
+	end)
 
--- 	table.insert(getgenv().CXT.Threads, t1)
+	table.insert(getgenv().CXT.Threads, t1)
 
--- 	local c1 = game.Players.LocalPlayer.PlayerGui.UI.Notifications.ChildAdded:Connect(function(notif)
--- 		local args = notif.Label.Text:split(" ")
+	local c1 = game.Players.LocalPlayer.PlayerGui.UI.Notifications.ChildAdded:Connect(function(notif)
+		local args = notif.Label.Text:split(" ")
 
--- 		local name1 = args[#args - 1]
--- 		local name2 = args[#args]
+		local name1 = args[#args - 1]
+		local name2 = args[#args]
 
--- 		if not name1 or not name2 then
--- 			return
--- 		end
+		if not name1 or not name2 then
+			return
+		end
 
--- 		local fruitName = args[3]
+		-- local fruitName = args[3]
 
--- 		if fruitName and fruitName == "fruit" then
--- 			return
--- 		end
+		-- if fruitName and fruitName == "fruit" then
+		-- 	return
+		-- end
 
--- 		local worldSpawned = name1 .. " " .. name2
+		local worldSpawned = name1 .. " " .. name2
 
--- 		if not game.ReplicatedStorage.Maps:FindFirstChild(worldSpawned) then
--- 			return
--- 		end
+		if not game.ReplicatedStorage.Maps:FindFirstChild(worldSpawned) then
+			return
+		end
 
--- 		local itemSpawned = workspace.Server.ItemSpawn:WaitForChild("ItemSpawn", 10)
+		local itemSpawned = workspace.Server.ItemSpawn:GetChildren()[1]
 
--- 		if not itemSpawned then
--- 			return
--- 		end
+		if not itemSpawned then
+			return
+		end
 
--- 		table.insert(items, {
--- 			world = worldSpawned,
--- 			item = itemSpawned
--- 		})
--- 	end)
+		table.insert(items, {
+			world = worldSpawned,
+			item = itemSpawned
+		})
+	end)
 
--- 	table.insert(getgenv().CXT.Connections, c1)
--- end
+	table.insert(getgenv().CXT.Connections, c1)
+
+	local oldPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
+	local oldWorld = workspace.Client.Maps:GetChildren()[1].Name
+
+	for _, item in workspace.Server.ItemSpawn:GetChildren() do
+		for _, map in game.ReplicatedStorage.Maps:GetChildren() do
+			game:GetService("ReplicatedStorage"):WaitForChild("Bridge"):FireServer("Teleport", "Teleport", map.Name)
+
+			task.wait(0.35)
+			game.Players.LocalPlayer.Character:MoveTo(item.Position)
+
+			local tries = 0
+
+			while item:IsDescendantOf(workspace.Server.ItemSpawn) do
+				tries += 1
+	
+				if tries >= 100000 then
+					break
+				end
+				
+				 fireproximityprompt(item.Prompt, 1000000)
+				task.wait()
+			end
+		end
+	end
+
+	game:GetService("ReplicatedStorage"):WaitForChild("Bridge"):FireServer("Teleport", "Teleport", oldWorld)
+
+	task.wait(0.35)
+	game.Players.LocalPlayer.Character:MoveTo(oldPos)
+end
 
 -- Handle AutoFarmSelected
 do
@@ -880,6 +913,17 @@ do
 	end)
 
 	Options.AutoEquipBest:SetValue(false)
+end
+
+-- AutoCollectItems
+do
+	local Toggle = Tabs.AutoMain:AddToggle("AutoCollectItems", { Title = "Auto Collect Items", Default = false })
+
+	Toggle:OnChanged(function()
+		getgenv().CXT.AutoCollectItems = Options.AutoCollectItems.Value
+	end)
+
+	Options.AutoCollectItems:SetValue(false)
 end
 
 -- AutoFarmSelected
